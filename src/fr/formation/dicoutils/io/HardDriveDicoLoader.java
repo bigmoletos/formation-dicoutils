@@ -1,4 +1,4 @@
-package fr.formation.dicoutils;
+package fr.formation.dicoutils.io;
 
 import java.io.BufferedReader;
 import java.io.FileReader;

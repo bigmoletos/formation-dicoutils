@@ -1,8 +1,12 @@
 package fr.formation.dicoutils;
 
-import java.util.Scanner;
+import java.util.Arrays;
 
 import org.apache.log4j.Logger;
+
+import fr.formation.dicoutils.io.ClasspathDicoLoader;
+import fr.formation.dicoutils.io.DicoIhm;
+import fr.formation.dicoutils.io.DicoLoader;
 
 /**
  * Classe principale de l'application comportant le point d'entrée (méthode
@@ -13,83 +17,105 @@ public class DicoUtils implements Runnable {
 	/**
 	 * Déclaration du logger associé à cette classe.
 	 */
-	private static final Logger LOG = Logger.getLogger(DicoUtils.class);
+	private static final Logger LOGGER = Logger.getLogger(DicoUtils.class);
 
 	/**
-	 * Point d'entrée de l'application. Création d'une instance et appel de la
-	 * méthode qui lance les traitements.
+	 * Point d'entrée de l'application. Création d'une instance de DicoUtils et
+	 * appel de la méthode qui lance les traitements. Le fait de créer une instance
+	 * de la classe dans laquel se trouve le point d'entrée est une convention
+	 * souvent utilisée. Le but est de passer de la méthode statique limitante à une
+	 * instance permettant d'utiliser les membres de classe.
 	 * 
-	 * @param args
-	 *            les arguments du programme.
+	 * @param args les arguments du programme.
 	 */
 	public static void main(String[] args) {
-		LOG.debug("Lancement du programme !");
+		DicoUtils.LOGGER.debug("Lancement du programme !");
 		new DicoUtils().run();
 	}
 
-	private final Scanner scanner;
 	private final DicoLoader loader;
-	private String[] words;
+	private final DicoIhm ihm;
+	private DicoSearch search;
 
 	public DicoUtils() {
-		this.scanner = new Scanner(System.in);
+		this.ihm = new DicoIhm();
 		this.loader = new ClasspathDicoLoader();
+//		this.loader = new HardDriveDicoLoader();
 	}
 
+	/**
+	 * Lancement de l'algorithme principal permettant à l'utilisateur d'effectuer
+	 * autant de recherches qu'il veut avant de quitter.
+	 */
 	@Override
 	public void run() {
-		LOG.debug("Exécution de la méthode run !");
+		DicoUtils.LOGGER.debug("Exécution de la méthode run !");
 		String action = null;
-		this.words = this.readDico();
-		LOG.debug("Nombre de mots dans le dictionnaire : "
-				+ this.words.length);
+		String[] words = this.readDico();
+//		this.search = new ArrayDicoSearch(words);
+		this.search = new CollectionDicoSearch(Arrays.asList(words));
+		DicoUtils.LOGGER.debug("Nombre de mots dans le dictionnaire : " + words.length);
 		while (!"exit".equals(action)) {
-			this.displayMenu();
-			action = this.readAction();
+			this.ihm.displayMenu();
+			action = this.ihm.readAction();
 			switch (action) {
 			case "A":
-				LOG.info("Vous avez choisi l'action A");
+				String word = this.ihm.readInput("Saisir un mot exact : ");
+				if (this.search.findExact(word)) {
+					this.ihm.display("Le mot est bien dans le dico !");
+				} else {
+					this.ihm.display("Désolé, le mot '" + word + "' n'est pas dans le dico.");
+				}
 				break;
 			case "B":
-				LOG.info("Vous avez choisi l'action B");
+				String prefix = this.ihm.readInput("Saisir un préfix de mot : ");
+				String[] results = this.search.findByPrefix(prefix);
+				this.handleResults(results);
+				break;
+			case "C":
+				String suffix = this.ihm.readInput("Saisir un suffixe de mot : ");
+				this.handleResults(this.search.findBySuffix(suffix));
+				break;
+			case "D":
+				String keyword = this.ihm.readInput("Saisir une chaîne : ");
+				this.handleResults(this.search.findByContains(keyword));
+				break;
+			case "E":
+				String regex = this.ihm.readInput("Saisir une expression régulière : ");
+				this.handleResults(this.search.findByRegex(regex));
 				break;
 			case "exit":
 				break;
 			default:
-				LOG.error("L'action '" + action + "' n'est pas reconnue.");
+				DicoUtils.LOGGER.error("L'action '" + action + "' n'est pas reconnue.");
 			}
 		}
 	}
 
+	/**
+	 * Chargement du fichier dictionnaire contenu dans l'application
+	 * (src/dictionnaire.txt). Pour accéder à un fichier qui se trouve avec les
+	 * classes Java, il faut utiliser le Classpath. Doc ->
+	 * https://fr.wikipedia.org/wiki/Chargeur_de_classe_Java
+	 * 
+	 * @return un tableau de tous les mots lus dans le fichier.
+	 */
 	private String[] readDico() {
 		return this.loader.loadFile("./dictionnaire.txt");
 	}
 
 	/**
-	 * Méthode permettant d'afficher le menu.
+	 * Méthode interne à la classe (visibilité privée) et commune aux différentes
+	 * méthodes de recherche.
+	 * 
+	 * @param results les résultats de la recherche.
 	 */
-	private void displayMenu() {
-		LOG.info("Menu :");
-		LOG.info("\tA - Chercher un mot exact");
-		LOG.info("\tB - Chercher par le début d'un mot");
-		LOG.info("\texit - Quitter l'application");
-	}
-
-	/**
-	 * Méthode permettant de lire une saisie utilisateur.
-	 */
-	private String readAction() {
-		String result = null;
-		while (result == null) {
-			String input = this.scanner.nextLine();
-			if (input.length() > 0 && input.matches("A|B|exit")) {
-				result = input;
-			} else {
-				LOG.error("L'action saisie n'est pas valide, "
-						+ "veuillez choisir une action du menu.");
-			}
+	private void handleResults(String[] results) {
+		if (results.length > 0) {
+			this.ihm.displayResults(results);
+		} else {
+			this.ihm.display("Aucun résultat trouvé.");
 		}
-		return result;
 	}
 
 }

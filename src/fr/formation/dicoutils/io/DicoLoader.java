@@ -1,7 +1,7 @@
-package fr.formation.dicoutils;
+package fr.formation.dicoutils.io;
 
 /**
- * Définition d'une méthode capable de charger un fichier texte.
+ * Interface définissant un moyen commun de charger un fichier texte.
  */
 public interface DicoLoader {
 
