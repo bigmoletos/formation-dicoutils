@@ -3,6 +3,8 @@ package fr.formation.dicoutils;
 import java.util.ArrayList;
 import java.util.List;
 
+import fr.formation.dicoutils.io.DicoIhm;
+
 /**
  * Implémentation des méthodes de recherche avec une collection de mots
  * représentant le dictionnaire.
@@ -15,6 +17,7 @@ public class CollectionDicoSearch implements DicoSearch {
 	 * méthodes utiles facilitant la recherche.
 	 */
 	private final List<String> words;
+	DicoIhm readClavier = new DicoIhm();
 
 	public CollectionDicoSearch(List<String> words) {
 		this.words = words;
@@ -79,6 +82,44 @@ public class CollectionDicoSearch implements DicoSearch {
 	 */
 	@Override
 	public String[] findByRegex(String expression) {
+		List<String> results = new ArrayList<>();
+		for (String dicoWord : this.words) {
+			if (dicoWord.matches(expression)) {
+				results.add(dicoWord);
+			}
+		}
+		return results.toArray(new String[0]);
+	}
+
+	/**
+	 * {@inheritDoc} by franck
+	 */
+	@Override
+	public String[] findByAll(String expression) {
+		if (readClavier.readAction() == "A") {
+//			contient seulement le mot
+			expression = "^" + expression + "$";
+			System.out.println("regex: " + expression);
+//			return regex;
+		} else if (readClavier.readAction() == "B") {
+			// commence par
+			expression = "^" + expression;
+			System.out.println("regex: " + expression);
+//			return regex;
+		} else if (readClavier.readAction() == "C") {
+			// termine par
+			expression = expression + "$";
+			System.out.println("regex: " + expression);
+//			return regex;
+		} else if (readClavier.readAction() == "D") {
+			// contient les valeurs
+			expression = (expression) + "+";
+			System.out.println("regex: " + expression);
+//			return regex;
+		} else if (readClavier.readAction() == "exit") {
+			// contient les valeurs
+//			return regex;
+		}
 		List<String> results = new ArrayList<>();
 		for (String dicoWord : this.words) {
 			if (dicoWord.matches(expression)) {

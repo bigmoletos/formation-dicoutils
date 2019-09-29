@@ -106,4 +106,10 @@ public class ArrayDicoSearch implements DicoSearch {
 		return results.split(":");
 	}
 
+	@Override
+	public String[] findByAll(String expression) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

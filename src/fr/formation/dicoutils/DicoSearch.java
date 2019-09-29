@@ -54,4 +54,19 @@ public interface DicoSearch {
 	 * @return String[] un tableau de tous les mots correspondants.
 	 */
 	public String[] findByRegex(String expression);
+
+	/**
+	 * @description
+	 *
+	 * @return String
+	 *
+	 * @method findByAll
+	 * @class DicoSearch
+	 * @version 1.0
+	 * @param expression
+	 * @date samedi 21 sept. 2019
+	 * @see
+	 *
+	 **/
+	public String[] findByAll(String expression);
 }
